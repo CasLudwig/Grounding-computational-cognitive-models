@@ -1,2 +1,3 @@
 # Grounding-computational-cognitive-models
-Repository to accompany paper
+
+Repository accompanying [Ludwig, Stuchlý, & Malhotra](https://osf.io/preprints/psyarxiv/vur6t). 
