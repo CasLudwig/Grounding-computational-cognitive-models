@@ -59,4 +59,4 @@ loaded via a namespace (and not attached):
 [57] evaluate_0.23      lattice_0.22-6     backports_1.5.0    broom_1.0.6        Rcpp_1.0.12        checkmate_2.3.1    xfun_0.44         
 [64] zoo_1.8-12         pkgconfig_2.0.3
 
-Stan version 2.32.2
+Stan version 2.32.2 (May 2023)
