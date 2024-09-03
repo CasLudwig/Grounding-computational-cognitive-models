@@ -7,7 +7,7 @@ Repository accompanying [Ludwig, Stuchlý, & Malhotra](https://osf.io/preprints/
 
 ## Mixture of Gaussians
 
-The [mixGaussiansPF](https://github.com/CasLudwig/Grounding-computational-cognitive-models/tree/main/mixGaussiansPF) folder contains all the code for generating Figure 4 in the paper. Assuming you have all the relevant libraries and Stan working together with R, you *should* simply be able to run [timeVarNormalSimulation.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/mixGaussiansPF/timeVarNormalSimulation.R). 
+The [mixGaussiansPF](https://github.com/CasLudwig/Grounding-computational-cognitive-models/tree/main/mixGaussiansPF) folder contains all the code for generating Figure 4 in the paper. Assuming you have all the relevant libraries and Stan working together with R (see below for setup info), you should simply be able to run [timeVarNormalSimulation.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/mixGaussiansPF/timeVarNormalSimulation.R). 
 
 ## Simulated expanded judgement paradigm
 
