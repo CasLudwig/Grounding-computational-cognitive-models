@@ -107,6 +107,7 @@ staticSearchCombined <- ggplot() +
   theme(axis.title.x.bottom = element_text(size=14,face="bold")) +
   theme(axis.title.y.left = element_text(size=14,face="bold"))
 staticSearchCombined
+
 ## Parameter estimates ##
 
 # Extract the individual parameter estimates into dataframes.
@@ -204,4 +205,4 @@ combinedPlot
 #   - Parameter names as Greek symbols (axis labels in panel B; row labels in panel C).
 #   - Remove the right most x-axis tick mark and numerical label
 # The following size just about fits on A4 when rotated 90 degs. You need to do the legend positioning offline though.
-ggsave("expJudgeEstimates.eps", dpi = 300, width = 26, height = 18.5, units = "cm")
+# ggsave("expJudgeEstimates.eps", dpi = 300, width = 26, height = 18.5, units = "cm")
