@@ -11,14 +11,14 @@ The [mixGaussiansPF](https://github.com/CasLudwig/Grounding-computational-cognit
 
 ## Simulated expanded judgement paradigm
 
-The [expandedJudgementSimulations](https://github.com/CasLudwig/Grounding-computational-cognitive-models/tree/main/expandedJudgementSimulations) folder contains code and data for generating Figures 5 and C1 (Appendix C) in the paper. Running this code is a bit more involved, but we have tried to make things easier by providing a [RNotebook]() with extensive commentary. You do not need to run the code in this notebook, but it provides insight in how the (simulated) data reported in the paper were generated. The notebook contains all the instructions for recreating the figures, but in brief:
+The [expandedJudgementSimulations](https://github.com/CasLudwig/Grounding-computational-cognitive-models/tree/main/expandedJudgementSimulations) folder contains code and data for generating Figures 5 and C1 (Appendix C) in the paper. Running this code is a bit more involved, but we have tried to make things easier by providing a [RNotebook](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/expandedJudgementSimulations/simulateExpJudgementData.Rmd) with extensive commentary. You do not need to run the code in this notebook, but it provides insight in how the (simulated) data reported in the paper were generated. The notebook contains all the instructions for recreating the figures, but in brief:
 
 - Figure 5: run [trajectoryExpJudgement.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/expandedJudgementSimulations/trajectoryExpJudgement.R).
 - Figure C1: run [rewardRatesExpJudgement.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/expandedJudgementSimulations/rewardRatesExpJudgement.R).
 
 ## Disclaimer
 
-If the code does not work because your setup is different from mine (see below), there is not much I can do about this. If the code does not work properly because there are errors, please let me know and I will of course fix as soon as I can.
+If the code does not work because your setup is different from mine (see below), there is not much I can do about this although I'm happy to try and help. If the code does not work properly because there are errors, please let me know and I will of course fix as soon as I can.
 
 ## Environment
 
