@@ -18,7 +18,7 @@ The [expandedJudgementSimulations](https://github.com/CasLudwig/Grounding-comput
 
 ## Disclaimer
 
-If the code does not work because your setup is different from mine (see below), there is not much I can do about this although I'm happy to try and help. If the code does not work properly because there are errors, please let me know and I will of course fix as soon as I can.
+If the code does not work because your setup is different from mine (see below), there is not much I can do about this, although I'm happy to try and help. If the code does not work properly because there are errors, please let me know and I will of course fix as soon as I can.
 
 ## Environment
 
