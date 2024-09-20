@@ -11,7 +11,7 @@ library(latex2exp)
 rm(list=ls())
 
 # Navigate to the appropriate folder and load the function that computes the log-likelihood for a given (stimulus, action) sequence.
-setwd("")
+# setwd("")
 
 source("decisionBoundEstimation.R")
 
@@ -20,7 +20,7 @@ source("decisionBoundEstimation.R")
 #   - A stationary agent who does not move at all
 #   - An agent who explores a little
 #   - An agent who explores extensively
-fName <- "data/simulatedAgents.RData"
+fName <- "simulatedAgents.RData"
 load(fName)
 selectAgents <- c(1, 2, 3)
 agentID <- factor(c("static", "limited", "extensive"), levels = c("static", "limited", "extensive"), ordered = TRUE)
