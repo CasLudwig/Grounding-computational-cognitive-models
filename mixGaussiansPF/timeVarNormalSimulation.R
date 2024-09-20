@@ -242,25 +242,6 @@ combinedPlot <- ggpubr::ggarrange(objPlot, staticSearchPlot, dataPlot, parmPlot,
                   ncol = 2,
                   nrow = 2)
 combinedPlot
-ggsave("exploreObj2D_Gauss.eps", dpi = 300, width = 21, height = 16, units = "cm")
-
-# Add estimated trajectory (posterior mean) to the search plot. 
-# This looks ugly, even after some filtering (median filter with same window size as the data generating agent)
-# filtered_mu <- robfilter::rm.filter(parmDF$post_mean[parmDF$parameter == "mu"], width = windowSize, online = FALSE)
-# filtered_sigma <- robfilter::rm.filter(parmDF$post_mean[parmDF$parameter == "sigma"], width = windowSize, online = FALSE)
-# filteredParms <- data.frame(trialID = seq(1,totalN),
-#                             mu = filtered_mu$level,
-#                             sigma = filtered_sigma$level)
-# colnames(filteredParms) <- c("trialID", "mu", "sigma")
-# 
-# staticSearchPlot <- staticSearchPlot +
-#   geom_line(aes(x = mu, y = sigma),
-#             data = filteredParms,
-#             colour = "grey",
-#             size = 0.5,
-#             alpha = 0.25) +
-#   annotate("text", x = filteredParms$mu[1], y = filteredParms$sigma[1], label = "pf1") +
-#   annotate("text", x = filteredParms$mu[totalN], y = filteredParms$sigma[totalN], label = "pf100")
-# staticSearchPlot
+# ggsave("exploreObj2D_Gauss.eps", dpi = 300, width = 21, height = 16, units = "cm")
 
 
