@@ -13,16 +13,6 @@ rm(list=ls())
 # Navigate to the appropriate folder and load the function that computes the log-likelihood for a given (stimulus, action) sequence.
 setwd("")
 
-### Some temporary code to construct a dataset with the three agents we want to illustrate ###
-load("data/simulated_trajectories.RData")
-simulatedAgents <- vector(mode = "list", length = 3)
-simulatedAgents[[1]] <- list(allData = datasim_all_static[[6]], visitData = wininfo_static[[6]])
-simulatedAgents[[2]] <- list(allData = datasim_all_dynamic[[2]], visitData = wininfo_dynamic[[2]])
-simulatedAgents[[3]] <- list(allData = datasim_all_dynamic[[4]], visitData = wininfo_dynamic[[4]])
-rm(datasim_all_dynamic, datasim_all_static, plots_dynamic, plots_static, wininfo_dynamic, wininfo_static)
-save.image("data/simulatedAgents.RData")
-### End of temporary code ###
-
 source("decisionBoundEstimation.R")
 
 # Load data generated from simulated agents.
