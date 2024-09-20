@@ -97,5 +97,5 @@ combinedPlot <- ggpubr::ggarrange(A, B, C,
                                   ncol = 3,
                                   nrow = 1)
 combinedPlot
-ggsave("rewardRates.eps", dpi = 300, width = 21, height = 7, units = "cm")
+# ggsave("rewardRates.eps", dpi = 300, width = 21, height = 7, units = "cm")
   
