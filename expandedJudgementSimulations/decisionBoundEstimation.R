@@ -1,7 +1,7 @@
 # C.J.H. Ludwig, June 2024
-# Function to visualise and estimate trajectories in parameter space during a
+# Function to estimate and visualise trajectories in parameter space during a
 # simulated expanded judgement paradigm (cf. Malhotra et al., 2017).
-# Return a list with 
+# Returns a list with 
 #   - Static parameter estimates
 #   - Particle filter parameter estimates
 #   - RMSE from static and particle filter estimates
@@ -70,7 +70,7 @@ decisionBoundEstimation <- function(pID = NULL, traject = NULL, allData = NULL){
   parmDF <- allData %>%
     filter(., time == 1) %>% # Select the data generating parameters for each trial
     select(., participant, trial, int, grad, noise) %>% # We don't need various columns
-    rename(., alpha = int, beta = grad, eta = noise) %>% # Rename generating parameters
+    dplyr::rename(., alpha = int, beta = grad, eta = noise) %>% # Rename generating parameters
     tidyr::pivot_longer(., cols = c("alpha", "beta", "eta"), 
                         names_to = "parameter", 
                         values_to = "trueVal") %>% # From wide to long
