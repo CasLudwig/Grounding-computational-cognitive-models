@@ -9,6 +9,10 @@ library(latex2exp)
 rm(list=ls())
 dev.off()
 
+# Navigate to the appropriate folder and load the function that computes the log-likelihood for a given (stimulus, action) sequence.
+dirName <- ""
+setwd(dirName)
+
 # Read in all the data we need
 asymptoticRR <- read.csv("rewardDynamicProgramming.csv")
 w5RR <- read.csv("rewardSimulation.csv")
@@ -18,7 +22,7 @@ rr_v_w <- read.csv("rewardWindowSize.csv")
 asymptoticRR$theta1 <- asymptoticRR$theta1 * pi/180
 w5RR$theta1 <- w5RR$theta1 *pi/180
 
-colScaleLims <- c(-0.065, 0.065)
+colScaleLims <- c(-0.09, 0.065)
 xyPeak <- c(asymptoticRR$theta1[which.max(asymptoticRR$objective)], 
             asymptoticRR$theta2[which.max(asymptoticRR$objective)])
 

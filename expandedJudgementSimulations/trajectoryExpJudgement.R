@@ -10,6 +10,19 @@ library(latex2exp)
 
 rm(list=ls())
 
+# Navigate to the appropriate folder and load the function that computes the log-likelihood for a given (stimulus, action) sequence.
+setwd("")
+
+### Some temporary code to construct a dataset with the three agents we want to illustrate ###
+load("data/simulated_trajectories.RData")
+simulatedAgents <- vector(mode = "list", length = 3)
+simulatedAgents[[1]] <- list(allData = datasim_all_static[[6]], visitData = wininfo_static[[6]])
+simulatedAgents[[2]] <- list(allData = datasim_all_dynamic[[2]], visitData = wininfo_dynamic[[2]])
+simulatedAgents[[3]] <- list(allData = datasim_all_dynamic[[4]], visitData = wininfo_dynamic[[4]])
+rm(datasim_all_dynamic, datasim_all_static, plots_dynamic, plots_static, wininfo_dynamic, wininfo_static)
+save.image("data/simulatedAgents.RData")
+### End of temporary code ###
+
 source("decisionBoundEstimation.R")
 
 # Load data generated from simulated agents.
@@ -17,7 +30,7 @@ source("decisionBoundEstimation.R")
 #   - A stationary agent who does not move at all
 #   - An agent who explores a little
 #   - An agent who explores extensively
-fName <- "simulatedAgents.RData"
+fName <- "data/simulatedAgents.RData"
 load(fName)
 selectAgents <- c(1, 2, 3)
 agentID <- factor(c("static", "limited", "extensive"), levels = c("static", "limited", "extensive"), ordered = TRUE)
@@ -64,20 +77,20 @@ xyPeak <- c(-2.5*pi/180, 5) # Gradient and intercept with the "true" long-run ma
 # Make sure the size and colour scales accommodate the range across agents
 sizeScaleLims <- c(1,20)
 sizeScaleBreaks <- c(1, 5, 10, 20)
-colScaleLims <- c(-0.01, 0.04)
+colScaleLims <- c(-0.01, 0.041)
 colScaleBreaks <- seq(-0.01, 0.04, by = 0.01)
 # Set up dataframe with "start" and "end" annotations for dynamic agents. You
 # will need to adjust the offsets with some trial-and-error. Values chosen here
-# work for these particular agents and the image size we're saving.
+# work for these particular agents and the image size we're saving (although even then, I ended up tweaking them offline).
 txtOffsets <- data.frame(agentID = rep(c("limited", "extensive"), times = 2),
                          x = c(decisionBounds[[2]]$trajectory$gradient[1] + 0, 
                                decisionBounds[[3]]$trajectory$gradient[1] + 0,
                                decisionBounds[[2]]$trajectory$gradient[nrow(decisionBounds[[2]]$trajectory)] + 0, 
                                decisionBounds[[3]]$trajectory$gradient[nrow(decisionBounds[[3]]$trajectory)] + 0),
-                         y = c(decisionBounds[[2]]$trajectory$intercept[1] + 0, 
-                               decisionBounds[[3]]$trajectory$intercept[1] + 0, 
-                               decisionBounds[[2]]$trajectory$intercept[nrow(decisionBounds[[2]]$trajectory)] + 0, 
-                               decisionBounds[[3]]$trajectory$intercept[nrow(decisionBounds[[3]]$trajectory)] + 0),
+                         y = c(decisionBounds[[2]]$trajectory$intercept[1] - 0.8, 
+                               decisionBounds[[3]]$trajectory$intercept[1] + 0.8, 
+                               decisionBounds[[2]]$trajectory$intercept[nrow(decisionBounds[[2]]$trajectory)] + 1, 
+                               decisionBounds[[3]]$trajectory$intercept[nrow(decisionBounds[[3]]$trajectory)] + 1),
                          txt = rep(c("start", "end"), each = 2)
                          )
 
@@ -103,7 +116,7 @@ staticSearchCombined <- ggplot() +
   theme(axis.text.y = element_text(size=12)) +
   theme(axis.title.x.bottom = element_text(size=14,face="bold")) +
   theme(axis.title.y.left = element_text(size=14,face="bold"))
-
+staticSearchCombined
 ## Parameter estimates ##
 
 # Extract the individual parameter estimates into dataframes.
@@ -113,6 +126,9 @@ staticPostSamples <- bind_rows(decisionBounds[[1]]$staticSamples, decisionBounds
 staticPostSamples$agentID <- agentID[as.numeric(staticPostSamples$agentID)]
 staticParmSummary <- bind_rows(decisionBounds[[1]]$staticParms, decisionBounds[[2]]$staticParms, decisionBounds[[3]]$staticParms, .id = "agentID")
 staticParmSummary$agentID <- agentID[as.numeric(staticParmSummary$agentID)]
+# Add an offset on the trial axis to show the violins
+staticPostSamples$trial <- staticPostSamples$trial + 15
+staticParmSummary$trial <- staticParmSummary$trial + 15
 
 # Given the facet_grid construction below, it's difficult to set the limits of the individual axes, so we do the following dirty trick.
 dfBlank <- data.frame(agentID = rep(agentID, each = 6),
@@ -127,7 +143,7 @@ estParmCombined <- ggplot(data = pfEst) +
   geom_line(aes(x = trial, y = trueVal), linewidth = 1, colour = "grey50", show.legend = TRUE) +
   geom_line(aes(x = trial, y = post_mean), colour = "black", linewidth = 1, alpha = 1, show.legend = TRUE) + # Posterior mean
   # To the right, show the estimates from a static model (posterior parameters from Stan)
-  geom_violin(data = staticPostSamples, aes(x = trial, y = sampleVal), trim = FALSE, scale = "area", width = 15, fill = "grey90", colour = "black", alpha = 1)+
+  geom_violin(data = staticPostSamples, aes(x = trial, y = sampleVal), trim = FALSE, scale = "width", fill = "grey90", colour = "black", alpha = 1)+
   geom_errorbar(data = staticParmSummary, aes(x = trial, ymin = q_25, ymax = q_75), size = 1, width = 3, colour = "black")+ # IQR
   geom_point(data = staticParmSummary, aes(x = trial, y = mean), size = 2, shape = 15, colour= "grey50", position = position_dodge(width = 1), alpha = 1)+
   geom_blank(data = dfBlank, aes(x = x, y = y)) +
@@ -157,7 +173,7 @@ dfRMSE$comparison <- factor(dfRMSE$comparison, levels = c("StaticPostMean", "pfP
                             labels = c("static", "dynamic"),
                             ordered = TRUE)
 dfRMSE$lnRMSE <- log(dfRMSE$RMSE)
-yScaleLims <- c(.005, 5) 
+yScaleLims <- c(.002, 5.1) 
 yScaleBreaks <- c(0.01, 0.1, 1, 5)
 
 rmseCombined <- ggplot(data = dfRMSE) +
@@ -196,5 +212,6 @@ combinedPlot
 #   - Make the weighted average locations in panel A hollow.
 #   - Legend positioning (I actually save a larger version of the plot and grab the legends from there, then paste into the smaller figure).
 #   - Parameter names as Greek symbols (axis labels in panel B; row labels in panel C).
+#   - Remove the right most x-axis tick mark and numerical label
 # The following size just about fits on A4 when rotated 90 degs. You need to do the legend positioning offline though.
 ggsave("expJudgeEstimates.eps", dpi = 300, width = 26, height = 18.5, units = "cm")

@@ -1,0 +1,229 @@
+---
+title: 'Simulated expanded judgement paradigm'
+link-citations: yes
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+# bibliography: X.bib
+---
+
+Here we provide the code (in notebook format) for simulating agents in the expanded judgement task. These agents explore a 2D parameter space given by the height and gradient of their decision threshold, using the local sampling and comparison algorithm described in detail in Figure 4 of the main text and Appendix A. The code here was used to generate the data for Figures 5 and C1 in the paper.
+
+```{r set_up, echo=FALSE,include=FALSE}
+rm(list=ls())
+# Load libraries
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(viridis)
+library(reshape)
+library(gridExtra)
+
+# setwd("") # Update if necessary for your own local setup
+
+# Load relevant functions
+source("rr_trialwin.R")
+source("samplingFunctions_decBound.R")
+source("genLandscapeFunction.R")
+set.seed(2)
+```
+
+We first define some parameters of the task environment and the simulated agents.
+
+```{r}
+intrange = c(0,25) # range of possible decision boundary height values
+gradrange = c(-pi/3,pi/36) # range of possible decision boundary gradients
+nMaxSteps = 2400 #the maximum number of samples that can be taken within the experiment (expressed in units of "time samples")
+  
+#the 'dynamic' parameters of the sampling algorithm (the ones that we vary)
+jumpsize <- c(0,0.1) #the step size for both parameters, expressed as proportion of the allowed parameter range
+W = 5 #duration of the "sampling period" - the number of trials the reward rate is estimated over
+evinoise = 1 #gaussian noise around the agent's representation of the accumulated evidence at any time point within a trial - SD expressed in "evidence units" 
+satisfice = 1 #the "goal" of the agent, expressed as proportion of the peak reward rate value (range from 0 to 1 - lower values lead to less exploration and more exploitation)
+  
+#parameters of the simulated experimental task
+drift = 0.2 # quality of the presented evidence - 0.5+/- drift gives the probability that the sample points towards the correct/incorrect option, respectively
+monpen = -2 #penalty incurred for an incorrect response (reward for correct is +1 point)
+iti_cor = 15 #inter-trial interval after a correct response
+iti_pen = iti_cor #inter-trial interval after an incorrect response
+MaxTrialsamples = 50 #the response "deadline" for a single trial, in units of time/evidence samples
+```
+
+## Reward rates in a simulated expanded judgement paradigm
+
+In this section, we generate the data for Figure C1 in Appendix C of the paper. 
+
+Just for the sake of illustration, we generate the 2D objective ("reward landscape") based on simulating a large number of trials at each combination of decision boundary height and gradient. This figure may be compared to the asymptotic dynamic programming solution, given in Figure C1A of the paper (though note that the colour scale has different limits in the paper and there are some other formatting differences).
+
+```{r}
+nsims=2500
+givensamples <- 0 #do not 
+rr_landscape <- gen_landscape(intrange,gradrange,drift,iti_cor,iti_pen,monpen,nsims,evinoise,givensamples)
+rr_landscape[[1]]
+```
+Now we do the same, but for only a small number of 5 trials for each decision policy (combination of height and gradient). This gives a very noisy landscape that can look very different from the asymptotic one (either generated through simulation, as above, or through dynamic programming). Figure C1B in the paper illustrates one such noisy landscape. Note that due to the small number of trials, the landscape would look different every time you run the code block below. The noisy landscape shown in Figure C1B is just one particular instance and will not match exactly the instance generated below. 
+
+In this simulation, the sequence of evidence samples is held constant for each policy. Suppose we have a sequence of $\mathbf{x} = \lbrace 1, 1, -1, 1, 1 \rbrace$. Consider two policies, both with a gradient of 0, but with a boundary height of either 2 or 3. For the sake of illustration, assume there is no decision noise. Under the $\alpha = 2$ policy, the agent makes a decision after the first two samples, and under the $\alpha = 3$ policy, the agent has to wait until 5 samples before decision boundary is reached. Therefore, any variability in the experienced sequence of evidence samples is down to the variation in decision policies. And any variability in the reward rate across the landscape may be attributed to the variation in decision policies.
+
+```{r}
+#first, generate a long sequence of evidence samples
+nsamples <- 500
+givensamples <- matrix(0,nrow=nsamples,ncol=MaxTrialsamples)
+for (i in 1:nsamples){
+  givensamples[i,] <- sample(x=c(1, -1),size=MaxTrialsamples,replace=TRUE, prob=c(0.5+drift, 0.5-drift))
+}
+
+#simulate and extract the reward landscape
+rr_landscape <- gen_landscape(intrange,gradrange,drift,iti_cor,iti_pen,monpen,W,evinoise,givensamples)
+rr_landscape[[1]]
+
+# Save for plotting down the line
+df <- rr_landscape[[3]]
+# Swap the first and second columns
+df <- df[, c(2, 1, 3)]
+# Rename the columns as "theta1", "theta2", and "objective"
+colnames(df) <- c("theta1", "theta2", "objective")
+
+df_reordered <- df[order(df$theta1, df$theta2,decreasing=TRUE), ]
+
+# Define the file path for exporting
+file_path <- paste0("rewardSimulation.csv")
+
+# Export the modified dataframe as a .csv file
+# write.csv(df_reordered, file = file_path)
+```
+
+We now load the asymptotic reward landscape generated through dynamic programming. This landscape was generated through [Matlab code](https://osf.io/km5jh/) available with [Malhotra et al. (2018, Psychonom Bull & Rev)](https://link.springer.com/article/10.3758/s13423-017-1340-6). This is the landscape illustrated in Figure C1A in the paper. The only purpose of loading it here is to extract the long-run optimal policy and the associated reward rate. We then simulate the distribution of experienced reward rates for different window sizes at the optimal decision boundary height and gradient. These distributions are illustrated in Figure C1C.
+
+```{r}
+#load in the asymptotic reward landscape generated with the dynamic programming code, modify it and save as a .csv file. This file forms the input for plotting Figure C1A
+rr_landscape_asymptotic <- read_csv("rewardDynamicProgramming.csv")
+#get the peak from the objective, asymptotic reward landscape and perform X simulated trials with the optimal parameter values for various window sizes, to obtain the reward rate distributions. Then save this as a .csv file. This file forms the input for plotting Figure C1C.
+#extract the highest reward landscape from the asymptotic landscape and identify the optimal parameter (intercept, gradient) values
+peak_objective = max(rr_landscape_asymptotic$objective)
+params_optimal = as.numeric(c(rr_landscape_asymptotic$theta2[which(rr_landscape_asymptotic$objective==peak_objective)],
+                              rr_landscape_asymptotic$theta1[which(rr_landscape_asymptotic$objective==peak_objective)]))
+
+Ws <- c(5,10,25,50)
+
+nruns <- 1000
+rrestims <- matrix(NA,ncol=2,nrow=nruns*length(Ws))
+for(i in 1:length(Ws)){
+  for(j in 1:nruns){
+    windowsize = Ws[i]
+    rrestims[(i-1)*nruns+j,1] <- rr_trialwin(windowsize, MaxTrialsamples, intercept = params_optimal[1], gradient = params_optimal[1]/180*pi, evinoise = 1, drift, iti_cor, iti_pen, monpen, returnTrials = 0,0)
+    rrestims[(i-1)*nruns+j,2] <- windowsize
+  }
+}
+rrestims <- data.frame(rrestims)
+colnames(rrestims) <- c("objective","wsize")
+
+# write.csv(rrestims, file = "rewardWindowSize.csv")
+```
+
+The data we have generated here are loaded in [rewardRatesExpJudgement.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/expandedJudgementSimulations/rewardRatesExpJudgement.R) and used to create Figure C1.
+
+## Trajectories in the cognitive parameter space for an expanded judgement paradigm
+
+Next, we turn to the data used to generate Figure 5. Here, we compare several agents who explore the 2D cognitive parameter space to different extents. The code block below simulates 12 static agents and 12 dynamic agents. The dynamic agents adopt the local sampling and comparison routine described in Figure 4 and Appendix A. The code block below generates two grids of 12 plots. For each dynamic agent, their starting point is indicated with a purple square and the red square marks their endpoint.  
+
+We hand-picked three illustrative agents to generate Figure 5: one static agent, one dynamic agent who does not explore a great deal and one dynamic agent who explores much more. Selection of these agents was subject to a number of constraints, such as wanting different amounts of exploration and non-overlapping trajectories in the state space. We selected agent 6 from the set of static agents (row 2, right). From the set of dynamic agents, we selected agents 2 (row 1, centre; limited exploration) and 4 (row 2, left; extensive exploration). The data for these selected agents are stored in simulatedAgents.RData. The remaining plots simply give some idea of the variability in the trajectories that may be generated in the current paradigm and sampling algorithm.
+
+```{r fig.height = 24, fig.width = 24, fig.align = "center"}
+#run a set of individual simulated trajectories and generate a plot. Do this once for 12 "static" agents (i.e., those who do not move around the parameter space) and for 12 "dynamic" agents (i.e., those who do move around the parameter space over time). This forms part of the output necessary for generating figure 5A
+
+peak_objective <- max(rr_landscape_asymptotic$objective)
+nsims <- 12 #the number of simulated trajectories to run
+
+set.seed(0753)
+#run and save the static agent trajectories
+i <- 1
+while(i <= nsims){
+  SDs <- c((intrange[2]-intrange[1])*jumpsize[1],(gradrange[2]-gradrange[1])*jumpsize[1])
+  sim_trajec <- LoSaCo_decBound(SDs,nMaxSteps,W,intrange,gradrange,evinoise,satisfice,peak_objective) #jump distribution; maximum number of samples (length of the "experiment"), window size, range of intercepts, range of gradients, uncertainty around the accumulated evidence (momentary noise, SD of a gaussian distribution with mean of 0), satisficing constant (1=maximizing), peak objective RR
+  # params_overall <- sim_trajec[[3]]
+  # params_overall[2] <- 180*atan(params_overall[2])/pi
+  
+  plot_trajec <- ggplot(sim_trajec[[1]], aes(x = 180*atan(gradient)/pi, y = intercept, fill=meanObjective,size=visitCount)) +
+     geom_point(data = data.frame(first(sim_trajec[[1]])), aes(x = 180*atan(gradient)/pi, y = intercept), shape = 22, color = "purple", size = 5, stroke = 2, fill = NA) +
+    geom_point(data = data.frame(last(sim_trajec[[1]])), aes(x = 180*atan(gradient)/pi, y = intercept), shape = 22, color = "red", size = 5, stroke = 2, fill = NA) +
+    geom_point(pch=21)+
+      geom_path(size=0.5)+
+    scale_fill_viridis(option="viridis",discrete=FALSE,direction=1,limits=c(-0.01,peak_objective), name="Reward rate") +
+      scale_size_area(name='No. of sampling \n periods',breaks=c(1,5,10,15,25,50,100,250,500)) +
+    xlim(c(10,-60)) +
+      ylim(intrange[1],intrange[2]) +
+      xlab('Gradient (deg)') +
+      ylab('Intercept') +
+      theme_bw() + 
+      theme(panel.border = element_blank(), 
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(), 
+            axis.line = element_line(colour = "black"),
+            text = element_text(size = 20))
+  nameplot <- paste('plot_static',i,sep='')
+  assign(nameplot,plot_trajec)
+  namedata <- paste('data_static',i,sep='')
+  assign(namedata,sim_trajec[[2]])
+  namedata <- paste('wininfo_static',i,sep='')
+  assign(namedata,sim_trajec[[1]])
+  
+  #a loop that will throw out the current trajectory if any of the trials "timed out", and will generate a new trajectory in its place
+  if (length(which(sim_trajec[[2]]$action==1))==length(unique(sim_trajec[[2]]$trial))){
+    i = i+1
+  }
+}
+#arrange the plots and simulated dataframes into a single list
+datasim_all_static <- lapply(paste('data_static',1:nsims,sep=''), get )
+plots_static <- lapply(paste('plot_static',1:nsims,sep=''), get )
+wininfo_static <- lapply(paste('wininfo_static',1:nsims,sep=''), get )
+grid.arrange(grobs=plots_static, nrow=4, ncol=3)
+
+#run and save the dynamic agent trajectories
+i <- 1
+while(i <= nsims){
+  SDs <- c((intrange[2]-intrange[1])*jumpsize[2],(gradrange[2]-gradrange[1])*jumpsize[2])
+  sim_trajec <- LoSaCo_decBound(SDs,nMaxSteps,W,intrange,gradrange,evinoise,satisfice,peak_objective) #jump distribution; maximum number of samples (length of the "experiment" - 900 for short, 2400 for long), window size, range of intercepts, range of gradients, uncertainty around the accumulated evidence (momentary noise, SD of a gaussian distribution with mean of 0), satisficing constant (1=maximizing), peak objective RR
+
+  plot_trajec <- ggplot(sim_trajec[[1]], aes(x = 180*atan(gradient)/pi, y = intercept, fill=meanObjective,size=visitCount)) +
+     geom_point(data = data.frame(first(sim_trajec[[1]])), aes(x = 180*atan(gradient)/pi, y = intercept), shape = 22, color = "purple", size = 5, stroke = 2, fill = NA) +
+    geom_point(data = data.frame(last(sim_trajec[[1]])), aes(x = 180*atan(gradient)/pi, y = intercept), shape = 22, color = "red", size = 5, stroke = 2, fill = NA) +
+    geom_point(pch=21)+
+      geom_path(size=0.5)+
+    scale_fill_viridis(option="viridis",discrete=FALSE,direction=1,limits=c(-0.01,peak_objective), name="Reward rate") +
+      scale_size_area(name='No. of sampling \n periods',breaks=c(1,5,10,15,25,50,100,250,500)) +
+    xlim(c(10,-60)) +
+      ylim(intrange[1],intrange[2]) +
+      xlab('Gradient (deg)') +
+      ylab('Intercept') +
+      theme_bw() + 
+      theme(panel.border = element_blank(), 
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(), 
+            axis.line = element_line(colour = "black"),
+            text = element_text(size = 20))
+  nameplot <- paste('plot_dynamic',i,sep='')
+  assign(nameplot,plot_trajec)
+  namedata <- paste('data_dynamic',i,sep='')
+  assign(namedata,sim_trajec[[2]])
+  namedata <- paste('wininfo_dynamic',i,sep='')
+  assign(namedata,sim_trajec[[1]])
+  
+  #a loop that will throw out the current trajectory if any of the trials "timed out", and will generate a new trajectory in its place
+  if (length(which(sim_trajec[[2]]$action==1))==length(unique(sim_trajec[[2]]$trial))){
+    i = i+1
+  }
+}
+#arrange the plots and simulated dataframes into a single list
+datasim_all_dynamic <- lapply(paste('data_dynamic',1:nsims,sep=''), get )
+plots_dynamic <- lapply(paste('plot_dynamic',1:nsims,sep=''), get )
+wininfo_dynamic <- lapply(paste('wininfo_dynamic',1:nsims,sep=''), get )
+grid.arrange(grobs=plots_dynamic, nrow=4, ncol=3)
+
+#optional: save the workspace
+#rm(list=setdiff(ls(), c("datasim_all_static","plots_static","wininfo_static","datasim_all_dynamic","plots_dynamic","wininfo_dynamic")))
+#save.image(file="simulated_trajectories.RData")
+```
+
+The data for the selected agents are loaded in [trajectoryExpJudgement.R](https://github.com/CasLudwig/Grounding-computational-cognitive-models/blob/main/expandedJudgementSimulations/trajectoryExpJudgement.R), which then generates Figure 5.
