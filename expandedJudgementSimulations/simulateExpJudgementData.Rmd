@@ -87,11 +87,8 @@ colnames(df) <- c("theta1", "theta2", "objective")
 
 df_reordered <- df[order(df$theta1, df$theta2,decreasing=TRUE), ]
 
-# Define the file path for exporting
-file_path <- paste0("rewardSimulation.csv")
-
 # Export the modified dataframe as a .csv file
-# write.csv(df_reordered, file = file_path)
+# write.csv(df_reordered, file = "rewardSimulation.csv")
 ```
 
 We now load the asymptotic reward landscape generated through dynamic programming. This landscape was generated through [Matlab code](https://osf.io/km5jh/) available with [Malhotra et al. (2018, Psychonom Bull & Rev)](https://link.springer.com/article/10.3758/s13423-017-1340-6). This is the landscape illustrated in Figure C1A in the paper. The only purpose of loading it here is to extract the long-run optimal policy and the associated reward rate. We then simulate the distribution of experienced reward rates for different window sizes at the optimal decision boundary height and gradient. These distributions are illustrated in Figure C1C.
