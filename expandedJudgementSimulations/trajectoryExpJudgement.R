@@ -63,7 +63,7 @@ meanLocs <- data.frame(agentID = c("static", "limited", "extensive"),
 meanLocsDyn <- filter(meanLocs, agentID != "static") # In case we only want to show the average position for the dynamic agents
 
 # Some hard-coded parameters that we know are suitable for the agents we've selected to illustrate.
-xyPeak <- c(-2.5*pi/180, 5) # Gradient and intercept with the "true" long-run maximum reward rate.
+xyPeak <- c(-2.5*pi/180, 4) # Gradient and intercept with the "true" long-run maximum reward rate.
 # Make sure the size and colour scales accommodate the range across agents
 sizeScaleLims <- c(1,20)
 sizeScaleBreaks <- c(1, 5, 10, 20)
